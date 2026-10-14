@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FK Code — Soluciones Digitales & IA</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; cursor: default; user-select: none; }
+  html, body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    background: #03050a; color: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Barra de Progreso Superior Instantánea */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; height: 4px; width: 20%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8, #10b981);
+    z-index: 1000; transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 15px #38bdf8;
+  }
+
+  /* Navegación superior con Logo FK Code integrado sin bordes */
+  nav {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 9vh;
+    padding: 0 3.5vw; display: flex; justify-content: space-between; align-items: center;
+    z-index: 500; background: rgba(3, 5, 10, 0.92);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+  }
+  .nav-brand-container {
+    display: flex; align-items: center; gap: 1vw; cursor: pointer;
+  }
+  .logo-wrapper {
+    width: 3.3vw; height: 3.3vw; min-width: 44px; min-height: 44px;
+    border-radius: 50%; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: #03050a;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+    border: 1.5px solid rgba(56, 189, 248, 0.7);
+  }
+  .logo-wrapper img {
+    width: 118%; height: 118%; object-fit: cover;
+    mix-blend-mode: screen; filter: contrast(1.15) brightness(1.1);
+  }
+  .brand-text {
+    font-family: 'Outfit', sans-serif; font-size: 1.2vw; font-weight: 900;
+    letter-spacing: 0.12vw; text-transform: uppercase; color: #fff;
+  }
+  .brand-text span { color: #38bdf8; }
+
+  .nav-links { display: flex; gap: 0.8vw; }
+  .nav-links span {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82vw; font-weight: 800; letter-spacing: 0.06vw;
+    text-transform: uppercase; color: rgba(255,255,255,0.6);
+    padding: 0.9vh 1.25vw; border-radius: 3vw;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.2s ease; cursor: pointer;
+  }
+  .nav-links span:hover {
+    color: #fff; border-color: #38bdf8; background: rgba(56,189,248,0.12);
+  }
+  .nav-links span.active {
+    color: #03050a; background: #38bdf8; border-color: #38bdf8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+  }
+
+  /* Indicadores de puntos laterales a la derecha */
+  #side-dots {
+    position: fixed; right: 1.2vw; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 1.2vh; z-index: 600;
+  }
+  .s-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.4);
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .s-dot.active {
+    height: 28px; border-radius: 10px; background: #38bdf8;
+    border-color: #38bdf8; box-shadow: 0 0 12px #38bdf8;
+  }
+
+  /* Botones interactivos */
+  button, .tpl-pill-btn, .tp-cta, .pillar-foot, .wa-chat-panel, .wa-big-card, .pillar-card, .ub-glass-stat {
+    cursor: pointer !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  button:hover, .tpl-pill-btn:hover, .tp-cta:hover, .pillar-foot:hover, .ub-glass-stat:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 0 25px rgba(56,189,248,0.65);
+  }
+
+  /* FONDO PURO GPU (Cero lag, 120 FPS) */
+  #gpu-bg {
+    position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1;
+    background: radial-gradient(circle at 68% 45%, rgba(14, 165, 233, 0.24) 0%, rgba(3, 5, 10, 0) 70%);
+    transition: background 0.35s ease;
+    pointer-events: none;
+  }
+
+  /* Ráfaga de bruma luminosa ultrarrápida al cambiar de escena (Efecto Montfort por GPU) */
+  #mist-flash {
+    position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 20;
+    background: linear-gradient(to bottom, transparent 0%, rgba(56, 189, 248, 0.14) 50%, transparent 100%);
+    opacity: 0; transform: translate3d(0, 30%, 0);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    pointer-events: none;
+  }
+  #mist-flash.sweep {
+    opacity: 1; transform: translate3d(0, -30%, 0);
+  }
+
+  /* Escenario Principal con Transiciones de Hardware Instantáneas (0.36s) */
+  #viewport {
+    position: fixed; inset: 0; width: 100vw; height: 100vh;
+    overflow: hidden; z-index: 5;
+  }
+
+  .scene {
+    position: absolute; inset: 0; width: 100vw; height: 100vh;
+    padding: 10vh 4vw 3.5vh 3.5vw;
+    display: flex; align-items: center; justify-content: space-between;
+    opacity: 0; pointer-events: none;
+    transform: translate3d(0, 75px, 0) scale(0.95);
+    transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease-out;
+    will-change: transform, opacity;
+  }
+  .scene.scene-col-layout {
+    flex-direction: column; justify-content: space-between;
+  }
+
+  /* Estados de cada escena para efecto continuo veloz */
+  .scene.prev {
+    opacity: 0; pointer-events: none;
+    transform: translate3d(0, -75px, 0) scale(0.95);
+  }
+  .scene.active {
+    opacity: 1; pointer-events: auto; z-index: 10;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  .scene.next {
+    opacity: 0; pointer-events: none;
+    transform: translate3d(0, 75px, 0) scale(0.95);
+  }
+
+  /* Efecto Parallax de doble velocidad en los bloques internos */
+  .parallax-slow {
+    transform: translate3d(0, 25px, 0);
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .parallax-fast {
+    transform: translate3d(0, 55px, 0);
+    transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .scene.active .parallax-slow,
+  .scene.active .parallax-fast {
+    transform: translate3d(0, 0, 0);
+  }
+  .scene.prev .parallax-slow { transform: translate3d(0, -25px, 0); }
+  .scene.prev .parallax-fast { transform: translate3d(0, -55px, 0); }
+
+  /* Tipografía Gordita y Gigante */
+  .editorial-col {
+    width: 39vw; z-index: 10; display: flex; flex-direction: column;
+    justify-content: center; padding-right: 1.5vw;
+  }
+  .pill-badge {
+    display: inline-flex; align-items: center; gap: 0.7vw;
+    align-self: flex-start; margin-bottom: 2vh;
+    background: rgba(56, 189, 248, 0.16); border: 2px solid #38bdf8;
+    padding: 0.8vh 1.3vw; border-radius: 3vw;
+  }
+  .pill-badge b {
+    background: #38bdf8; color: #03050a; font-family: 'Outfit', sans-serif;
+    font-weight: 900; font-size: 0.85vw; padding: 0.2vh 0.6vw; border-radius: 2vw;
+  }
+  .pill-badge span {
+    font-family: 'Outfit', sans-serif; font-size: 0.9vw; font-weight: 800;
+    letter-spacing: 0.12vw; text-transform: uppercase; color: #ffffff;
+  }
+  .display-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 4vw; font-weight: 900; line-height: 1.05;
+    letter-spacing: -0.04vw; text-transform: uppercase;
+    color: #ffffff; margin-bottom: 2.2vh;
+  }
+  .display-title strong {
+    font-weight: 900; display: block;
+    background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .editorial-lead {
+    font-size: 1.15vw; line-height: 1.6; color: #e2e8f0; font-weight: 600; margin-bottom: 2.6vw; max-width: 37vw;
+  }
+  .bold-specs { display: flex; flex-direction: column; gap: 1.3vh; }
+  .bold-specs div {
+    display: flex; align-items: center; gap: 0.9vw;
+    background: rgba(10, 18, 34, 0.88); border: 1.5px solid rgba(255, 255, 255, 0.15);
+    padding: 1.3vh 1.3vw; border-radius: 1vw;
+    font-family: 'Outfit', sans-serif; font-size: 1.05vw; font-weight: 700; color: #ffffff;
+  }
+  .bold-specs div span {
+    background: #38bdf8; color: #03050a; font-weight: 900;
+    width: 1.9vw; height: 1.9vw; border-radius: 0.5vw;
+    display: flex; align-items: center; justify-content: center; font-size: 0.9vw; flex-shrink: 0;
+  }
+
+  /* ESCENA 0: Portada Web */
+  .showcase-col-right {
+    width: 52vw; height: 81vh; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ultra-browser {
+    width: 100%; height: 100%; border-radius: 1.4vw;
+    background: #070b14; border: 2px solid rgba(56, 189, 248, 0.5);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.9);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .ub-top {
+    height: 4.6vh; background: #0c1322; padding: 0 1.4vw;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .ub-dots { display: flex; gap: 0.5vw; }
+  .ub-dots i { width: 0.75vw; height: 0.75vw; border-radius: 50%; display: block; }
+  .ub-url {
+    font-family: 'Outfit', sans-serif; font-size: 0.85vw; font-weight: 700; color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12); padding: 0.4vh 1.4vw; border-radius: 2vw;
+  }
+  .ub-screen {
+    flex: 1; position: relative; background-size: cover; background-position: center;
+    display: flex; flex-direction: column; justify-content: space-between; padding: 3.5vh 2.8vw;
+  }
+  .ub-screen::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(3,6,14,0.95) 8%, rgba(3,6,14,0.2) 55%);
+  }
+  .ub-inner-nav {
+    position: relative; z-index: 2; display: flex; justify-content: space-between;
+    align-items: center; border-bottom: 1.5px solid rgba(255,255,255,0.2); padding-bottom: 1.5vh;
+  }
+  .ub-inner-nav b { font-family: 'Outfit', sans-serif; font-size: 1.1vw; font-weight: 800; }
+  .ub-inner-nav span { font-size: 0.82vw; font-weight: 700; color: #38bdf8; }
+  .ub-inner-hero {
+    position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .ub-inner-hero h3 {
+    font-family: 'Outfit', sans-serif; font-size: 2.2vw; font-weight: 900; text-transform: uppercase; line-height: 1.1; margin-bottom: 1vh;
+  }
+  .ub-inner-hero p { font-size: 0.95vw; font-weight: 600; color: #e2e8f0; max-width: 28vw; }
+  .ub-glass-stat {
+    background: rgba(14, 165, 233, 0.22); border: 2px solid #38bdf8;
+    padding: 1.8vh 1.6vw; border-radius: 1vw; text-align: right;
+  }
+  .ub-glass-stat big { font-family: 'Outfit', sans-serif; font-size: 2.1vw; font-weight: 900; color: #fff; display: block; }
+  .ub-glass-stat small { font-size: 0.78vw; font-weight: 800; color: #38bdf8; text-transform: uppercase; }
+
+  /* ESCENA 1: Plantillas Web */
+  .full-header-bar {
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+    background: rgba(8, 15, 30, 0.9); border: 2px solid rgba(56, 189, 248, 0.4);
+    padding: 1.8vh 2.2vw; border-radius: 1.2vw;
+  }
+  .full-header-bar h2 {
+    font-family: 'Outfit', sans-serif; font-size: 2.4vw; font-weight: 900; text-transform: uppercase;
+  }
+  .full-header-bar h2 strong {
+    font-weight: 900; background: linear-gradient(90deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .full-header-bar p {
+    font-size: 0.95vw; font-weight: 700; color: #e2e8f0;
+    background: rgba(56, 189, 248, 0.15); padding: 0.9vh 1.4vw; border-radius: 2vw; border: 1px solid #38bdf8;
+  }
+  .massive-templates-grid {
+    width: 100%; height: 69vh; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.8vw;
+  }
+  .massive-tpl {
+    background: #080d18; border-radius: 1.3vw; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+    display: flex; flex-direction: column; position: relative;
+  }
+  .massive-tpl-img {
+    width: 100%; height: 52vh; background-size: cover; background-position: center; position: relative;
+  }
+  .massive-tpl-img::after {
+    content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 45%, #080d18 100%);
+  }
+  .tpl-top-tag {
+    position: absolute; top: 1.8vh; left: 1.2vw; z-index: 2;
+    background: #03050a; border: 2px solid #38bdf8; padding: 0.7vh 1.1vw; border-radius: 0.6vw;
+    font-family: 'Outfit', sans-serif; font-size: 0.82vw; font-weight: 800; text-transform: uppercase; color: #38bdf8;
+  }
+  .massive-tpl-info {
+    flex: 1; padding: 0 1.6vw; display: flex; justify-content: space-between; align-items: center;
+  }
+  .massive-tpl-info h4 {
+    font-family: 'Outfit', sans-serif; font-size: 1.35vw; font-weight: 800; text-transform: uppercase; color: #fff; margin-bottom: 0.4vh;
+  }
+  .massive-tpl-info p { font-size: 0.88vw; font-weight: 600; color: #cbd5e1; }
+  .tpl-pill-btn {
+    padding: 1.1vh 1.3vw; background: #38bdf8; color: #03050a; border: none;
+    font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 0.8vw; text-transform: uppercase; border-radius: 0.7vw;
+  }
+
+  /* ESCENA 2: Aplicaciones */
+  .three-phones-stage {
+    width: 52vw; height: 81vh; display: flex; gap: 1.4vw; align-items: center; justify-content: space-between;
+  }
+  .tall-phone {
+    flex: 1; height: 73vh; border-radius: 2.2vw; background: #080c16;
+    border: 2px solid rgba(168, 85, 247, 0.5); box-shadow: 0 30px 80px rgba(0,0,0,0.85);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .tall-phone.center-featured {
+    height: 79vh; border: 2.5px solid #38bdf8; box-shadow: 0 35px 90px rgba(56, 189, 248, 0.3);
+  }
+  .tp-image {
+    height: 40vh; width: 100%; background-size: cover; background-position: center;
+    position: relative; padding: 2vh 1.2vw; display: flex; align-items: flex-start;
+  }
+  .tp-image::after {
+    content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 35%, #080c16 100%);
+  }
+  .tp-badge {
+    position: relative; z-index: 2; background: #7c3aed; padding: 0.7vh 1vw; border-radius: 2vw;
+    font-family: 'Outfit', sans-serif; font-size: 0.72vw; font-weight: 800; text-transform: uppercase; color: #fff;
+  }
+  .tp-body {
+    flex: 1; padding: 1.5vh 1.3vw 2.2vh; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .tp-body h4 {
+    font-family: 'Outfit', sans-serif; font-size: 1.3vw; font-weight: 800; text-transform: uppercase; color: #fff; margin-bottom: 0.4vh;
+  }
+  .tp-body p { font-size: 0.86vw; font-weight: 600; color: #cbd5e1; line-height: 1.45; }
+  .tp-item-card {
+    display: flex; align-items: center; gap: 0.8vw; background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.16); padding: 1.1vh 0.9vw; border-radius: 0.9vw;
+  }
+  .tp-item-card img { width: 3.2vw; height: 3.2vw; border-radius: 0.6vw; object-fit: cover; }
+  .tp-item-card b { font-family: 'Outfit', sans-serif; font-size: 0.88vw; font-weight: 800; color: #fff; display: block; }
+  .tp-item-card span { font-size: 0.75vw; font-weight: 700; color: #38bdf8; }
+  .tp-cta {
+    width: 100%; padding: 1.3vh; text-align: center; border-radius: 0.8vw; border: none;
+    font-family: 'Outfit', sans-serif; font-size: 0.82vw; font-weight: 900; text-transform: uppercase;
+    background: linear-gradient(90deg, #7c3aed, #38bdf8); color: #fff;
+  }
+
+  /* ESCENA 3: Bots de WhatsApp */
+  .wa-full-stage {
+    width: 52vw; height: 79vh; display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.6vw;
+  }
+  .wa-chat-panel {
+    background: rgba(6, 22, 16, 0.95); border: 2.5px solid #10b981; border-radius: 1.5vw; padding: 2.5vh 1.8vw;
+    display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 30px 85px rgba(0,0,0,0.85);
+  }
+  .wa-head {
+    display: flex; align-items: center; gap: 1vw; padding-bottom: 1.8vh; border-bottom: 1.5px solid rgba(16, 185, 129, 0.3);
+  }
+  .wa-head img { width: 3.5vw; height: 3.5vw; border-radius: 50%; object-fit: cover; border: 2px solid #10b981; }
+  .wa-head h4 { font-family: 'Outfit', sans-serif; font-size: 1.2vw; font-weight: 800; text-transform: uppercase; }
+  .wa-head span { font-size: 0.82vw; font-weight: 700; color: #34d399; }
+  .wa-msg-client { background: #132a21; padding: 1.4vh 1.2vw; border-radius: 1vw; font-size: 0.95vw; font-weight: 600; color: #f1f5f9; width: 88%; }
+  .wa-msg-auto { background: #064e3b; border: 1.5px solid #10b981; padding: 1.4vh 1.2vw; border-radius: 1vw; margin-left: auto; width: 92%; font-size: 0.95vw; font-weight: 600; color: #ffffff; }
+  .wa-msg-auto img { width: 100%; height: 21vh; object-fit: cover; border-radius: 0.7vw; margin-bottom: 1vh; }
+  .wa-side-col { display: flex; flex-direction: column; justify-content: space-between; gap: 2vh; }
+  .wa-big-card {
+    flex: 1; background: #071912; border: 2px solid rgba(16, 185, 129, 0.45); border-radius: 1.3vw; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .wa-big-card img { width: 100%; height: 22vh; object-fit: cover; }
+  .wa-big-card div { padding: 1.8vh 1.3vw; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .wa-big-card h5 { font-family: 'Outfit', sans-serif; font-size: 1.15vw; font-weight: 800; color: #34d399; margin-bottom: 0.5vh; text-transform: uppercase; }
+  .wa-big-card p { font-size: 0.88vw; font-weight: 600; color: #e2e8f0; line-height: 1.45; }
+
+  /* ESCENA 4: IA */
+  .four-pillars-grid {
+    width: 100%; height: 69vh; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5vw;
+  }
+  .pillar-card {
+    background: #080d18; border: 2px solid rgba(56, 189, 248, 0.4); border-radius: 1.2vw; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 80px rgba(0,0,0,0.85);
+  }
+  .pillar-card img { width: 100%; height: 41vh; object-fit: cover; }
+  .pillar-body {
+    flex: 1; padding: 2vh 1.4vw; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .pillar-body small { font-family: 'Outfit', sans-serif; font-size: 0.82vw; font-weight: 800; color: #38bdf8; text-transform: uppercase; }
+  .pillar-body h4 { font-family: 'Outfit', sans-serif; font-size: 1.35vw; font-weight: 900; text-transform: uppercase; color: #fff; margin: 0.5vh 0; }
+  .pillar-body p { font-size: 0.9vw; font-weight: 600; color: #cbd5e1; line-height: 1.45; }
+  .pillar-foot {
+    padding: 1.1vh; background: rgba(56, 189, 248, 0.18); border-radius: 0.6vw; border: none; width: 100%;
+    font-family: 'Outfit', sans-serif; font-size: 0.82vw; font-weight: 800; color: #38bdf8; text-align: center; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Barra de progreso superior -->
+  <div id="progress-bar"></div>
+
+  <!-- Navegación Superior con las 5 Secciones Directas -->
+  <nav>
+    <div class="nav-brand-container" onclick="goToSlide(0)">
+      <div class="logo-wrapper">
+        <img src="LogoFkcode.png" alt="FK Code Logo">
+      </div>
+      <div class="brand-text">FK <span>CODE</span></div>
+    </div>
+    <div class="nav-links">
+      <span class="active" onclick="goToSlide(0)">01. Páginas Web</span>
+      <span onclick="goToSlide(1)">02. Plantillas</span>
+      <span onclick="goToSlide(2)">03. Aplicaciones</span>
+      <span onclick="goToSlide(3)">04. Bots WhatsApp</span>
+      <span onclick="goToSlide(4)">05. Asistentes IA</span>
+    </div>
+  </nav>
+
+  <!-- Puntos de navegación lateral -->
+  <div id="side-dots">
+    <div class="s-dot active" onclick="goToSlide(0)"></div>
+    <div class="s-dot" onclick="goToSlide(1)"></div>
+    <div class="s-dot" onclick="goToSlide(2)"></div>
+    <div class="s-dot" onclick="goToSlide(3)"></div>
+    <div class="s-dot" onclick="goToSlide(4)"></div>
+  </div>
+
+  <!-- Fondo Puro GPU + Barrido de Bruma Luminosa -->
+  <div id="gpu-bg"></div>
+  <div id="mist-flash"></div>
+
+  <!-- Escenario Principal -->
+  <main id="viewport">
+
+    <!-- ESCENA 0: PÁGINAS WEB HERO -->
+    <section class="scene active" id="scene-0">
+      <div class="editorial-col parallax-slow">
+        <div class="pill-badge"><b>01</b><span>Diseño & Desarrollo Web</span></div>
+        <h1 class="display-title">FK CODE: <strong>PÁGINAS WEB</strong> MODERNAS.</h1>
+        <p class="editorial-lead">Creamos páginas web de alto impacto visual, tiendas online y sitios corporativos listos para convertir visitantes en clientes las 24 horas.</p>
+        <div class="bold-specs">
+          <div><span>✓</span> Tiendas E-Commerce con Pagos Integrados</div>
+          <div><span>✓</span> Páginas Corporativas & Landing Pages</div>
+          <div><span>✓</span> Conectadas Directo a tu WhatsApp</div>
+        </div>
+      </div>
+      <div class="showcase-col-right parallax-fast">
+        <div class="ultra-browser">
+          <div class="ub-top">
+            <div class="ub-dots"><i style="background:#ef4444;"></i><i style="background:#f59e0b;"></i><i style="background:#10b981;"></i></div>
+            <div class="ub-url">https://fkcode.com</div>
+            <div style="font-size:0.8vw; font-weight:800; color:#10b981;">● ONLINE 24/7</div>
+          </div>
+          <div class="ub-screen" style="background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2200&q=95');">
+            <div class="ub-inner-nav"><b>FK CODE DIGITAL</b><span>CATÁLOGO &nbsp;•&nbsp; SERVICIOS &nbsp;•&nbsp; WHATSAPP</span></div>
+            <div class="ub-inner-hero">
+              <div>
+                <h3>DISEÑO WEB PREMIUM & TIENDAS ONLINE</h3>
+                <p>Plantillas personalizadas listas para vender con catálogo HD y pasarela de pagos.</p>
+              </div>
+              <div class="ub-glass-stat" onclick="goToSlide(1)"><big>VER +</big><small>Plantillas Web →</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENA 1: CATÁLOGO DE PLANTILLAS WEB -->
+    <section class="scene scene-col-layout next" id="scene-1">
+      <div class="full-header-bar parallax-slow">
+        <h2>FK CODE: <strong>PLANTILLAS DE PÁGINAS WEB</strong></h2>
+        <p>100% Personalizables para Celular y Computadora</p>
+      </div>
+      <div class="massive-templates-grid parallax-fast">
+        <div class="massive-tpl">
+          <div class="massive-tpl-img" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1800&q=95');"><span class="tpl-top-tag">FK CODE • EMPRESAS</span></div>
+          <div class="massive-tpl-info">
+            <div><h4>WEB CORPORATIVA</h4><p>Galerías HD, cotizador y WhatsApp</p></div>
+            <button class="tpl-pill-btn" onclick="openWhatsApp('Hola FK Code, quiero cotizar la Web Corporativa')">COTIZAR</button>
+          </div>
+        </div>
+        <div class="massive-tpl">
+          <div class="massive-tpl-img" style="background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1800&q=95');"><span class="tpl-top-tag">FK CODE • E-COMMERCE</span></div>
+          <div class="massive-tpl-info">
+            <div><h4>TIENDA ONLINE</h4><p>Carrito y pagos con tarjeta</p></div>
+            <button class="tpl-pill-btn" onclick="openWhatsApp('Hola FK Code, quiero cotizar una Tienda Online')">COTIZAR</button>
+          </div>
+        </div>
+        <div class="massive-tpl">
+          <div class="massive-tpl-img" style="background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=95');"><span class="tpl-top-tag">FK CODE • NEGOCIOS</span></div>
+          <div class="massive-tpl-info">
+            <div><h4>RESTAURANTES & CITAS</h4><p>Menú interactivo y reservas</p></div>
+            <button class="tpl-pill-btn" onclick="openWhatsApp('Hola FK Code, quiero cotizar sistema de Reservas y Citas')">COTIZAR</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENA 2: APLICACIONES MÓVILES -->
+    <section class="scene next" id="scene-2">
+      <div class="editorial-col parallax-slow">
+        <div class="pill-badge" style="border-color:#a855f7; background:rgba(168,85,247,0.18);"><b style="background:#a855f7; color:#fff;">02</b><span>Apps para iOS & Android</span></div>
+        <h1 class="display-title">FK CODE: <strong>APLICACIONES</strong> MÓVILES.</h1>
+        <p class="editorial-lead">Lleva tu negocio al bolsillo de tus clientes con aplicaciones rápidas y modernas listas para recibir pedidos, reservas y pagos.</p>
+        <div class="bold-specs">
+          <div><span style="background:#a855f7; color:#fff;">✓</span> Apps de Pedidos y Delivery</div>
+          <div><span style="background:#a855f7; color:#fff;">✓</span> Apps de Reservas y Citas</div>
+          <div><span style="background:#a855f7; color:#fff;">✓</span> Publicación en App Store y Google Play</div>
+        </div>
+      </div>
+      <div class="three-phones-stage parallax-fast">
+        <div class="tall-phone">
+          <div class="tp-image" style="background-image: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1400&q=95');"><span class="tp-badge">APP DELIVERY</span></div>
+          <div class="tp-body">
+            <div><h4>PEDIDOS A DOMICILIO</h4><p>Menú digital con seguimiento en vivo.</p></div>
+            <div class="tp-item-card">
+              <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=90" alt="item">
+              <div><b>Orden #804 Lista</b><span>Pago Confirmado • $32</span></div>
+            </div>
+            <button class="tp-cta" onclick="openWhatsApp('Hola FK Code, me interesa una App de Delivery')">ORDENAR APP</button>
+          </div>
+        </div>
+        <div class="tall-phone center-featured">
+          <div class="tp-image" style="background-image: url('https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1400&q=95');"><span class="tp-badge" style="background:#0284c7;">APP E-COMMERCE</span></div>
+          <div class="tp-body">
+            <div><h4>TU TIENDA EN EL CELULAR</h4><p>Catálogo interactivo con notificaciones.</p></div>
+            <div class="tp-item-card">
+              <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=90" alt="item">
+              <div><b>Ventas en Vivo</b><span>+3,800 Clientes</span></div>
+            </div>
+            <button class="tp-cta" style="background:#38bdf8; color:#03050a;" onclick="openWhatsApp('Hola FK Code, quiero mi App de Tienda E-Commerce')">CREAR MI APP</button>
+          </div>
+        </div>
+        <div class="tall-phone">
+          <div class="tp-image" style="background-image: url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1400&q=95');"><span class="tp-badge">APP RESERVAS</span></div>
+          <div class="tp-body">
+            <div><h4>AGENDA & SERVICIOS</h4><p>Reserva de turnos y consultas 24/7.</p></div>
+            <div class="tp-item-card">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=90" alt="item">
+              <div><b>Cita Confirmada</b><span>Hoy 16:30 hrs</span></div>
+            </div>
+            <button class="tp-cta" onclick="openWhatsApp('Hola FK Code, quiero una App de Reservas y Citas')">SOLICITAR APP</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENA 3: BOTS DE WHATSAPP (Paso garantizado sin saltos) -->
+    <section class="scene next" id="scene-3">
+      <div class="editorial-col parallax-slow">
+        <div class="pill-badge" style="border-color:#10b981; background:rgba(16,185,129,0.18);"><b style="background:#10b981; color:#03050a;">03</b><span>Automatización 24/7</span></div>
+        <h1 class="display-title">FK CODE: BOTS DE <strong style="background:linear-gradient(90deg,#34d399,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">WHATSAPP</strong>.</h1>
+        <p class="editorial-lead">Nuestros bots responden en 1 segundo, envían catálogos con fotos, cotizan y agendan citas solos.</p>
+        <div class="bold-specs">
+          <div><span style="background:#10b981; color:#03050a;">✓</span> Envío Automático de Fotos y Precios</div>
+          <div><span style="background:#10b981; color:#03050a;">✓</span> Agendamiento de Citas y Pedidos 24/7</div>
+          <div><span style="background:#10b981; color:#03050a;">✓</span> Atiende a Cientos de Clientes a la Vez</div>
+        </div>
+      </div>
+      <div class="wa-full-stage parallax-fast">
+        <div class="wa-chat-panel" onclick="openWhatsApp('Hola FK Code, quiero implementar un Bot de WhatsApp en mi negocio')">
+          <div class="wa-head">
+            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=90" alt="bot">
+            <div><h4>FK Code Bot de Ventas</h4><span>● Clic para chatear con el Bot</span></div>
+          </div>
+          <div class="wa-msg-client">¡Hola! Quiero información de las Páginas Web, Aplicaciones y Bots 👋</div>
+          <div class="wa-msg-auto">
+            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=95" alt="preview">
+            ¡Bienvenido a FK Code! 🚀 Haz clic aquí para cotizar tu Bot de WhatsApp automático al instante. ✓✓
+          </div>
+          <div class="wa-msg-client">¡Sí! Quiero automatizar mis ventas.</div>
+          <div class="wa-msg-auto">✅ ¡Excelente! Conectando con asesor FK Code... ✓✓</div>
+        </div>
+        <div class="wa-side-col">
+          <div class="wa-big-card" onclick="openWhatsApp('Hola FK Code, me interesa automatizar mis ventas')">
+            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1000&q=95" alt="ventas">
+            <div><h5>VENTAS AUTOMÁTICAS</h5><p>Muestra tus productos en alta definición y cobra en el chat.</p></div>
+          </div>
+          <div class="wa-big-card" onclick="openWhatsApp('Hola FK Code, quiero agendamiento automático')">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1000&q=95" alt="crm">
+            <div><h5>AGENDA SIN INTERVENCIÓN</h5><p>Registra cada cliente y confirma citas automáticamente.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ESCENA 4: ASISTENTES DE IA & RESUMEN -->
+    <section class="scene scene-col-layout next" id="scene-4">
+      <div class="full-header-bar parallax-slow">
+        <h2>FK CODE: <strong>ASISTENTES DE IA</strong> & ECOSISTEMA</h2>
+        <p>Tus 4 Productos Tecnológicos Listos para Vender</p>
+      </div>
+      <div class="four-pillars-grid parallax-fast">
+        <div class="pillar-card" onclick="goToSlide(1)">
+          <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=95" alt="Páginas Web">
+          <div class="pillar-body">
+            <div><small>FK CODE • 01</small><h4>VENTA DE PÁGINAS WEB</h4><p>Sitios corporativos, tiendas e-commerce y plantillas de alta conversión.</p></div>
+            <button class="pillar-foot">VER PLANTILLAS WEB</button>
+          </div>
+        </div>
+        <div class="pillar-card" onclick="goToSlide(2)">
+          <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1200&q=95" alt="Aplicaciones">
+          <div class="pillar-body">
+            <div><small>FK CODE • 02</small><h4>APLICACIONES MÓVILES</h4><p>Apps para iOS y Android con catálogos, pedidos y pagos móviles.</p></div>
+            <button class="pillar-foot">VER APLICACIONES</button>
+          </div>
+        </div>
+        <div class="pillar-card" onclick="goToSlide(3)">
+          <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=95" alt="Bots WhatsApp">
+          <div class="pillar-body">
+            <div><small>FK CODE • 03</small><h4>BOTS DE WHATSAPP</h4><p>Respuesta inmediata, envío de catálogos con fotos y citas 24/7.</p></div>
+            <button class="pillar-foot">VER BOTS</button>
+          </div>
+        </div>
+        <div class="pillar-card" onclick="openWhatsApp('Hola FK Code, quiero contratar Asistentes de Inteligencia Artificial')">
+          <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1200&q=95" alt="Asistentes IA">
+          <div class="pillar-body">
+            <div><small>FK CODE • 04</small><h4>ASISTENTES DE IA</h4><p>Agentes inteligentes entrenados con tu empresa para atender y vender.</p></div>
+            <button class="pillar-foot" style="background:#38bdf8; color:#03050a;">CONTRATAR IA</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+<script>
+  const scenes = document.querySelectorAll('.scene');
+  const navItems = document.querySelectorAll('.nav-links span');
+  const sideDots = document.querySelectorAll('.s-dot');
+  const progressBar = document.getElementById('progress-bar');
+  const gpuBg = document.getElementById('gpu-bg');
+  const mistFlash = document.getElementById('mist-flash');
+
+  const bgColors = [
+    'rgba(14, 165, 233, 0.25)', // 0: Azul Web
+    'rgba(56, 189, 248, 0.25)', // 1: Cian Plantillas
+    'rgba(168, 85, 247, 0.25)', // 2: Violeta Apps
+    'rgba(16, 185, 129, 0.25)', // 3: Esmeralda Bots WhatsApp
+    'rgba(56, 189, 248, 0.25)'  // 4: Cian IA
+  ];
+
+  let currentSlide = 0;
+  let lockUntil = 0;
+
+  // Transición instantánea por GPU (0.35s) y barrido de bruma sin lag
+  function goToSlide(targetIdx) {
+    if (targetIdx < 0 || targetIdx >= scenes.length || targetIdx === currentSlide) return;
+
+    currentSlide = targetIdx;
+
+    // Activar barrido atmosférico rápido
+    mistFlash.classList.remove('sweep');
+    void mistFlash.offsetWidth;
+    mistFlash.classList.add('sweep');
+
+    // Actualizar posición de todas las escenas en GPU
+    scenes.forEach((sc, i) => {
+      sc.classList.remove('prev', 'active', 'next');
+      if (i < currentSlide) sc.classList.add('prev');
+      else if (i === currentSlide) sc.classList.add('active');
+      else sc.classList.add('next');
+    });
+
+    // Actualizar menú, indicadores y fondo
+    navItems.forEach((el, i) => el.classList.toggle('active', i === currentSlide));
+    sideDots.forEach((el, i) => el.classList.toggle('active', i === currentSlide));
+    progressBar.style.width = `${((currentSlide + 1) / scenes.length) * 100}%`;
+    gpuBg.style.background = `radial-gradient(circle at 68% 45%, ${bgColors[currentSlide]} 0%, rgba(3, 5, 10, 0) 70%)`;
+  }
+
+  // Detector de Trackpad Ultrarrápido (1 toque = 1 sección al instante, sin saltarse ninguna)
+  let prevDelta = 0;
+  window.addEventListener('wheel', e => {
+    e.preventDefault();
+    const now = performance.now();
+    const absD = Math.abs(e.deltaY);
+
+    // Detecta si el usuario hizo un nuevo empuje con el dedo
+    const isFreshPush = absD > prevDelta + 8;
+    prevDelta = absD;
+
+    if (absD < 6) return;
+
+    if (now > lockUntil || (isFreshPush && now > lockUntil - 140)) {
+      lockUntil = now + 420; // Frena la inercia residual para no saltar Bots de WhatsApp
+      if (e.deltaY > 0) goToSlide(currentSlide + 1);
+      else goToSlide(currentSlide - 1);
+    }
+  }, { passive: false });
+
+  // Teclado y Modo Automático Rápido con ESPACIO
+  let autoTimer = null;
+  window.addEventListener('keydown', e => {
+    if (e.code === 'ArrowDown' || e.code === 'ArrowRight' || e.code === 'PageDown') {
+      e.preventDefault();
+      goToSlide(currentSlide + 1);
+    } else if (e.code === 'ArrowUp' || e.code === 'ArrowLeft' || e.code === 'PageUp') {
+      e.preventDefault();
+      goToSlide(currentSlide - 1);
+    } else if (e.code === 'Space') {
+      e.preventDefault();
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      } else {
+        goToSlide(currentSlide < scenes.length - 1 ? currentSlide + 1 : 0);
+        autoTimer = setInterval(() => {
+          if (currentSlide < scenes.length - 1) goToSlide(currentSlide + 1);
+          else { clearInterval(autoTimer); autoTimer = null; }
+        }, 2200);
+      }
+    }
+  });
+
+  // Enlace directo a WhatsApp
+  function openWhatsApp(msg) {
+    const encoded = encodeURIComponent(msg);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
+  }
+</script>
+</body>
+</html>
